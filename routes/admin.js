@@ -10,14 +10,15 @@ router.post("/login", adminController.adminLogin);
 
 router.get("/departments", adminController.viewDepartments);
 router.post("/addDept", upload.single("deptImg"),adminController.addDepartment);
-router.put("/updateDept", adminController.updateDepartment);
+router.get("/editDept/:id", adminController.getDeptById);
+router.put("/editDept/:id",upload.single("deptImg"), adminController.updateDepartment);
 router.post("/deleteDept", adminController.deleteDepartment);
 
 
 router.get("/employees", adminController.viewEmployees);
 router.post("/adduser", upload.single("profileImg"),adminController.addUser);
-router.post("/updateUser", adminController.changeUser);
+router.get("/editUser/:id", adminController.getUserById);
+router.put("/editUser/:id",upload.single("profileImg"),adminController.changeUser)
 router.post("/deleteUser", adminController.deleteUser);
-
 
 module.exports = router;
