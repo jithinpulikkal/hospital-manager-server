@@ -116,31 +116,55 @@ module.exports = {
     },
 
     updateDepartment: async (req, res) => {
-        const id = req.params.id;
-        const { deptName, yearFounded, deptImg, description } = req.body;
-
         try {
+            const id = req.params.id;
+            const { deptName, yearFounded, description } = req.body;
+    
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ error: 'Invalid department ID' });
+            }
+    
+            if (!deptName || !yearFounded || !description) {
+                return res.status(400).json({ error: 'All fields are required' });
+            }
+    
+            const data = {
+                deptName,
+                yearFounded,
+                description,
+            };
+    
+            if (req.file) {
+                const deptImg = req.file.filename;
+                const newImage = new Image({ path: deptImg });
+    
+                try {
+                    await newImage.save();
+                    data.deptImg = newImage.path;
+                    console.log('Department image uploaded:', newImage.path);
+                } catch (imageError) {
+                    console.error('Error saving department image:', imageError);
+                    res.status(500).json({ error: 'Error saving department image' });
+                    return;
+                }
+            } else {
+                data.deptImg = 'default-path-for-no-image';
+            }
+    
             const department = await deptModel.findOneAndUpdate(
                 { _id: id },
-                {
-                    $set: {
-                        deptName,
-                        yearFounded,
-                        deptImg,
-                        description,
-                    },
-                },
+                { $set: data },
                 { new: true }
             );
-
+    
             if (!department) {
-                return res.status(404).json({ error: "Department not found" });
+                return res.status(404).json({ error: 'Department not found' });
             }
-            res.json({ message: "Department updated successfully", department });
-            
+    
+            res.json({ message: 'Department updated successfully', department });
         } catch (error) {
-            console.error("Error updating department:", error);
-            res.status(500).json({ error: "Internal Server Error" });
+            console.error('Error updating department:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     },
 
@@ -224,32 +248,61 @@ module.exports = {
     },
 
     changeUser: async (req, res) => {
-        const id = req.params.id;
-        const { employeeName, age, employeeNumber, description, department } = req.body;
-
         try {
+            const id = req.params.id;
+    
+            // Validate if the provided id is a valid ObjectId
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ error: 'Invalid user ID' });
+            }
+    
+            const { employeeName, age, employeeNumber, description, department } = req.body;
+    
+            if (!employeeName || !age || !employeeNumber || !description || !department) {
+                return res.status(400).json({ error: 'All fields are required' });
+            }
+    
+            const data = {
+                employeeName,
+                age,
+                employeeNumber,
+                description,
+                department,
+            };
+    
+            if (req.file) {
+                const profileImg = req.file.filename;
+                const newProfileImg = new Image({ path: profileImg });
+    
+                try {
+                    await newProfileImg.save();
+                    data.profileImg = newProfileImg.path;
+                    console.log('Image uploaded:', newProfileImg.path);
+                } catch (imageError) {
+                    console.error('Error saving image:', imageError);
+                    res.status(500).json({ error: 'Error saving image' });
+                    return;
+                }
+            } else {
+                data.profileImg = 'default-path-for-no-image';
+            }
+    
             const employee = await userModel.findByIdAndUpdate(
                 id,
                 {
-                    $set: {
-                        employeeName,
-                        age,
-                        employeeNumber,
-                        description,
-                        department,
-                    },
+                    $set: data,
                 },
                 { new: true }
             );
-
+    
             if (!employee) {
-                return res.status(404).json({ error: "User not found" });
-            } 
-            res.json({ message: "User updated", employee });
-            
+                return res.status(404).json({ error: 'User not found' });
+            }
+    
+            res.json({ message: 'User updated', employee });
         } catch (error) {
-            console.error("Error updating user:", error);
-            res.status(500).json({ error: "Internal Server Error" });
+            console.error('Error in changeUser:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
         }
     },
 
